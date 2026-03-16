@@ -8,10 +8,37 @@ $Serial         = (Get-CimInstance Win32_BIOS).SerialNumber
 $CPU            = (Get-CimInstance Win32_Processor).Name
 $RAM            = [math]::Round((Get-CimInstance Win32_PhysicalMemory | Measure-Object Capacity -Sum).Sum / 1GB, 0)
 
-# Disk = tổng dung lượng tất cả ổ cứng
-$Disk = 0
-Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | ForEach-Object { $Disk += $_.Size }
-$Disk = [math]::Round($Disk / 1GB, 0)
+# === PHẦN DISK MỚI: Liệt kê từng ổ vật lý với loại và dung lượng ===
+$diskList = @()
+
+Get-PhysicalDisk | ForEach-Object {
+    $media = $_.MediaType
+    if ($media -eq "UnSpecified") {
+        # Nếu UnSpecified, thử đoán qua BusType hoặc Model (fallback)
+        if ($_.BusType -eq "NVMe") { $media = "SSD (NVMe)" }
+        elseif ($_.BusType -eq "SATA" -and $_.FriendlyName -match "SSD") { $media = "SSD" }
+        else { $media = "Unknown" }
+    }
+
+    $sizeGB = [math]::Round($_.Size / 1GB, 0)
+    $diskInfo = "Ổ $($_.DeviceID): $media $sizeGB GB"
+
+    # Thêm BusType nếu muốn chi tiết hơn (NVMe, SATA, USB,...)
+    if ($_.BusType -and $_.BusType -ne "SATA") {
+        $diskInfo += " ($($_.BusType))"
+    }
+
+    $diskList += $diskInfo
+}
+
+$Disk = $diskList -join "; "   # Ghép thành chuỗi: "Ổ 0: SSD 512GB; Ổ 1: HDD 1TB; ..."
+
+# Nếu không có ổ nào, fallback về tổng cũ
+if (-not $Disk) {
+    $totalDisk = 0
+    Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | ForEach-Object { $totalDisk += $_.Size }
+    $Disk = [math]::Round($totalDisk / 1GB, 0) + " GB (tổng)"
+}
 
 # IP (local IPv4 chính, không phải 169.x hay loopback)
 $IP = (Get-NetIPAddress | Where-Object {
