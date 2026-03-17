@@ -3,7 +3,8 @@
 # ================================================
 
 Write-Host "=======================================" -ForegroundColor Cyan
-Write-Host "     COLLECT PC - CHỌN PHIÊN BẢN" -ForegroundColor Cyan
+Write-Host "     KIỂM TRA CẤU HÌNH MÁY TÍNH VER 1.0.0 - CHỌN PHIÊN BẢN" -ForegroundColor Cyan
+Write-Host "     - CHỌN PHIÊN BẢN -" -ForegroundColor Cyan
 Write-Host "=======================================" -ForegroundColor Cyan
 Write-Host "1. Windows 10 / 11 (Khuyến nghị - đầy đủ tính năng)" -ForegroundColor Green
 Write-Host "2. Windows 7 (Tương thích)" -ForegroundColor Yellow
