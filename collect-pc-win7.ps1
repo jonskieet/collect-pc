@@ -11,7 +11,7 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding  = [System.Text.Encoding]::UTF8
 
-$WebAppUrl = "https://script.google.com/macros/s/AKfycbx4dwSloGihlLYBExIPCK8z3R6MO1Yre1X1p_ud7aYQaGfOBQ41YPOsTrh___RRQ/exec"  
+$WebAppUrl = "https://script.google.com/macros/s/AKfycbzktruXAyFtyH0Jxyyh_2Fe6x2OOfsY9Yq_psM86gCwYiDS4eXSTvU34NuljbgYuI6Z5A/exec"  
 
 # ==================== NHẬP TAY ====================
 if (-not $PhongBan) { 
