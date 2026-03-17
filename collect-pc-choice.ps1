@@ -20,7 +20,7 @@ do {
             break
         }
         "2" {
-            Write-Host "`nĐang chạy phiên bản Windows 7..." -ForegroundColor Yellow
+            Write-Host "`nĐang chạy phiên bản Windows 7..." -ForegroundColor Green
             irm "https://raw.githubusercontent.com/jonskieet/collect-pc/main/collect-pc-win7.ps1" | iex
             break
         }
