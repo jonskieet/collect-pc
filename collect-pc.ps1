@@ -28,8 +28,8 @@ $WebAppUrl = "https://script.google.com/macros/s/AKfycbzktruXAyFtyH0Jxyyh_2Fe6x2
 # ==================== INPUT ====================
 Update-Progress "Đang nhập thông tin người dùng..." 5
 
-if (-not $PhongBan) { $PhongBan = Read-Host "Nhập tên phòng ban" ; if (-not $PhongBan) { $PhongBan = "Chưa nhập" } }
-if (-not $CanBo)    { $CanBo    = Read-Host "Nhập tên cán bộ"    ; if (-not $CanBo)    { $CanBo    = "Chưa nhập" } }
+if (-not $PhongBan) { $PhongBan = Read-Host "Nhập tên phòng ban"-ForegroundColor Green ; if (-not $PhongBan) { $PhongBan = "Chưa nhập" } }
+if (-not $CanBo)    { $CanBo    = Read-Host "Nhập tên cán bộ"-ForegroundColor Green ; if (-not $CanBo)    { $CanBo    = "Chưa nhập" } }
 
 # ==================== BASIC INFO ====================
 Update-Progress "Đang lấy tên máy và user..." 10
