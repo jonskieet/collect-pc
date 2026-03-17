@@ -1,5 +1,5 @@
 # === THAY ĐỔI DÒNG NÀY BẰNG URL CỦA BẠN ===
-$WebAppUrl = "https://script.google.com/macros/s/AKfycbx4dwSloGihLlYBExIPCk81z3R6MO1Yre1Xlp_uD7aYQaGfOBQ4iYPXOsTr0h____RRQg/exec"
+$WebAppUrl = "https://script.google.com/macros/s/AKfycbyV3JChqfiYTfROjxi_QhpALuNSnlt4TfQDmq_7WWUykI8OZFEH9bSD_DsSrcjXd3QSoQ/exec"
 
 # === NHẬP TAY 2 CỘT MỚI ===
 Write-Host "=== NHẬP THÔNG TIN PHÒNG BAN VÀ CÁN BỘ ===" -ForegroundColor Yellow
