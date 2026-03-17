@@ -17,9 +17,12 @@ function Update-Progress {
         [string]$Status,
         [int]$Percent
     )
-    Write-Progress -Activity "ACIC - Đang thu thập dữ liệu" -Status $Status -PercentComplete $Percent
-}
 
+    Write-Progress `
+        -Activity " - Đang thu thập dữ liệu" `
+        -Status "$Status ($Percent%)" `
+        -PercentComplete $Percent
+}
 $WebAppUrl = "https://script.google.com/macros/s/AKfycbzktruXAyFtyH0Jxyyh_2Fe6x2OOfsY9Yq_psM86gCwYiDS4eXSTvU34NuljbgYuI6Z5A/exec"  
 
 # ==================== INPUT ====================
