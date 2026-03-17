@@ -1,5 +1,5 @@
 # ================================================
-# COLLECT PC - Hỗ trợ đầy đủ tiếng Việt
+# COLLECT PC - Fix hoàn chỉnh tiếng Việt
 # ================================================
 
 param (
@@ -7,30 +7,26 @@ param (
     [string]$CanBo    = ""
 )
 
-# Buộc PowerShell hỗ trợ UTF-8 để hiển thị và gửi tiếng Việt đúng
+# Buộc UTF-8 toàn script
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding  = [System.Text.Encoding]::UTF8
 
-# === URL Google Apps Script (giữ nguyên của bạn) ===
-$WebAppUrl = "https://script.google.com/macros/s/AKfycbyzC2NKTE1rQa0tgBuXXoSUT_Q4OmqD14tUf9uN_VJj6BVG40L4chAegL-JtBWNswYjmw/exec"
+$WebAppUrl = "https://script.google.com/macros/s/AKfycbyzC2NKTE1rQa0tgBuXXoSUT_Q4OmqD14tUf9uN_VJj6BVG40L4chAegL-JtBWNswYjmw/exec"  
 
-# === NHẬP THÔNG TIN (hỗ trợ tiếng Việt) ===
+# Nhập thông tin
 if (-not $PhongBan) {
-    Write-Host "=== NHẬP THÔNG TIN ===" -ForegroundColor Yellow
     $PhongBan = Read-Host "Nhập tên phòng ban"
     if (-not $PhongBan) { $PhongBan = "Chưa nhập" }
 }
-
 if (-not $CanBo) {
-    $CanBo = Read-Host "Nhập tên cán bộ (họ và tên)"
+    $CanBo = Read-Host "Nhập tên cán bộ"
     if (-not $CanBo) { $CanBo = "Chưa nhập" }
 }
 
-Write-Host "Đã nhận: Phòng ban = $PhongBan | Cán bộ = $CanBo" -ForegroundColor Green
-Write-Host "Đang thu thập thông tin máy..." -ForegroundColor Cyan
+Write-Host "Đang thu thập thông tin PC..." -ForegroundColor Cyan
 
-# === THÔNG TIN PC ===
+# Thông tin PC
 $TenMayTinh     = $env:COMPUTERNAME
 $TenNguoiSuDung = $env:USERNAME
 $Model          = (Get-CimInstance Win32_ComputerSystem).Model
@@ -38,46 +34,29 @@ $Serial         = (Get-CimInstance Win32_BIOS).SerialNumber
 $CPU            = (Get-CimInstance Win32_Processor).Name
 $RAM            = [math]::Round((Get-CimInstance Win32_PhysicalMemory | Measure-Object Capacity -Sum).Sum / 1GB, 0)
 
-# === DISK (đã fix dung lượng thực + tên rõ ràng) ===
+# Disk (giữ nguyên phiên bản sạch)
 $diskList = @()
 Get-PhysicalDisk | Sort-Object DeviceId | ForEach-Object {
     $sizeGB = [math]::Round($_.Size / 1GB, 0)
-    
-    $media = $_.MediaType
-    if ($media -eq "UnSpecified" -or $media -eq $null) {
-        if ($_.BusType -eq "NVMe") { $media = "NVMe SSD" }
-        elseif ($_.FriendlyName -match "SSD") { $media = "SSD" }
-        else { $media = "HDD" }
-    }
-
-    $diskName = if ($_.FriendlyName -and $_.FriendlyName -notmatch "^Physical") {
-                    $_.FriendlyName.Trim()
-                } else {
-                    "Disk $($_.DeviceId)"
-                }
-
+    $media = if ($_.MediaType -eq "UnSpecified" -or $_.MediaType -eq $null) {
+                 if ($_.BusType -eq "NVMe") { "NVMe SSD" } else { "SSD" }
+             } else { $_.MediaType }
+    $diskName = if ($_.FriendlyName -and $_.FriendlyName -notmatch "^Physical") { $_.FriendlyName.Trim() } else { "Disk $($_.DeviceId)" }
     $diskInfo = "$diskName : $media $sizeGB GB"
-    if ($_.BusType -and $_.BusType -notin @("SATA","Unknown")) {
-        $diskInfo += " ($($_.BusType))"
-    }
+    if ($_.BusType -and $_.BusType -notin @("SATA","Unknown")) { $diskInfo += " ($($_.BusType))" }
     $diskList += $diskInfo
 }
-$Disk = $diskList -join "; "
+$Disk = $diskList -join "; " ; if (-not $Disk) { $Disk = "Không lấy được" }
 
-if (-not $Disk) { $Disk = "Không lấy được thông tin disk" }
-
-# === IP, MAC, Windows ===
-$IP = (Get-NetIPAddress | Where-Object {
-    $_.AddressFamily -eq 'IPv4' -and 
-    $_.IPAddress -notlike '127.*' -and 
-    $_.IPAddress -notlike '169.*'
-} | Select-Object -First 1).IPAddress
-
+# IP, MAC, Windows
+$IP = (Get-NetIPAddress | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.*' } | Select-Object -First 1).IPAddress
 $MAC = (Get-NetAdapter | Where-Object Status -eq 'Up' | Select-Object -First 1).MacAddress
 $Windows = (Get-CimInstance Win32_OperatingSystem).Caption
 
-# === GỬI DỮ LIỆU (UTF-8) ===
+# === PHẦN QUAN TRỌNG: Gửi JSON đúng UTF-8 ===
 $data = @{
+    PhongBan        = $PhongBan
+    CanBo           = $CanBo
     TenMayTinh      = $TenMayTinh
     TenNguoiSuDung  = $TenNguoiSuDung
     Model           = $Model
@@ -88,19 +67,20 @@ $data = @{
     IP              = $IP
     MAC             = $MAC
     Windows         = $Windows
-    PhongBan        = $PhongBan
-    CanBo           = $CanBo
 }
 
-$json = $data | ConvertTo-Json -Compress
+$json = $data | ConvertTo-Json -Compress -Depth 10
 
+# Gửi với UTF-8 bytes (fix mojibake)
 try {
-    Invoke-RestMethod -Uri $WebAppUrl -Method Post -Body $json -ContentType "application/json" | Out-Null
+    $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+    Invoke-RestMethod -Uri $WebAppUrl -Method Post -Body $bodyBytes -ContentType "application/json; charset=utf-8" | Out-Null
+    
     Write-Host "✅ Upload thành công!" -ForegroundColor Green
-    Write-Host "Phòng ban: $PhongBan | Cán bộ: $CanBo | Máy: $TenMayTinh" -ForegroundColor Cyan
+    Write-Host "Phòng ban: $PhongBan | Cán bộ: $CanBo" -ForegroundColor Cyan
 } 
 catch {
-    Write-Host "❌ Lỗi upload: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "❌ Lỗi: $($_.Exception.Message)" -ForegroundColor Red
 }
 
 Write-Host "Nhấn phím bất kỳ để thoát..." -ForegroundColor Gray
