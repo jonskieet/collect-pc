@@ -2,13 +2,13 @@
 # LAUNCHER - Chọn phiên bản Windows
 # ================================================
 
-Write-Host "=================================================================" -ForegroundColor Cyan
-Write-Host "- Tool kiểm tra cấu hình PC ACIC version 1.0.0 -" -ForegroundColor Cyan
-Write-Host "     - VUI LÒNG CHỌN PHIÊN BẢN PHÙ HỢP!!! -" -ForegroundColor Cyan
-Write-Host "=================================================================" -ForegroundColor Cyan
+Write-Host "=================================================================" -ForegroundColor Green
+Write-Host "- Tool kiểm tra cấu hình PC ACIC version 1.0.0 -" -ForegroundColor Green
+Write-Host "     - VUI LÒNG CHỌN PHIÊN BẢN PHÙ HỢP!!! -" -ForegroundColor Green
+Write-Host "=================================================================" -ForegroundColor Green
 Write-Host "1. Windows 10 / 11 (Khuyến nghị - đầy đủ tính năng)" -ForegroundColor Green
 Write-Host "2. Windows 7 (Tương thích)" -ForegroundColor Yellow
-Write-Host "=================================================================" -ForegroundColor Cyan
+Write-Host "=================================================================" -ForegroundColor Green
 
 do {
     $choice = (Read-Host "Nhập lựa chọn (1 hoặc 2)").Trim()
