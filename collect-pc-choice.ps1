@@ -7,7 +7,7 @@ Write-Host "- Tool kiểm tra cấu hình PC ACIC version 1.0.0 -" -ForegroundCo
 Write-Host "     - VUI LÒNG CHỌN PHIÊN BẢN PHÙ HỢP!!! -" -ForegroundColor Green
 Write-Host "=================================================================" -ForegroundColor Green
 Write-Host "1. Windows 10 / 11 (Khuyến nghị - đầy đủ tính năng)" -ForegroundColor Green
-Write-Host "2. Windows 7 (Tương thích)" -ForegroundColor Yellow
+Write-Host "2. Windows 7 (Tương thích)" -ForegroundColor Green
 Write-Host "=================================================================" -ForegroundColor Green
 
 do {
