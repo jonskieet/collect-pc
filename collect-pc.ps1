@@ -26,35 +26,46 @@ $Model          = (Get-CimInstance Win32_ComputerSystem).Model
 $Serial         = (Get-CimInstance Win32_BIOS).SerialNumber
 $CPU            = (Get-CimInstance Win32_Processor).Name
 
-# ==================== NGÀY SỬ DỤNG PC (Original Install Date) ====================
+# ==================== NGÀY SỬ DỤNG PC ====================
 $NgaySuDung = "Không lấy được"
 
-# Cách tốt nhất: Lấy từ Registry (ổn định hơn sau nhiều lần update)
+# Cách 1 (Ưu tiên): Lấy thời gian tạo thư mục Windows
 try {
-    $sources = Get-ChildItem "HKLM:\SYSTEM\Setup\Source*" -ErrorAction SilentlyContinue | 
-               ForEach-Object { Get-ItemProperty $_.PSPath }
-    
-    $allDates = $sources | Where-Object { $_.InstallDate } | 
-                ForEach-Object { [DateTime]::FromFileTime($_.InstallDate) }
-    
-    if ($allDates) {
-        $NgaySuDung = ($allDates | Sort-Object | Select-Object -First 1).ToString("dd/MM/yyyy")
-    }
+    $NgaySuDung = (Get-Item "C:\Windows").CreationTime.ToString("dd/MM/yyyy")
 }
 catch { }
 
-# Fallback nếu không lấy được từ Source
+# Cách 2: Lấy từ Registry Source (nếu cách 1 lỗi)
+if ($NgaySuDung -eq "Không lấy được") {
+    try {
+        $sources = Get-ChildItem "HKLM:\SYSTEM\Setup\Source*" -ErrorAction SilentlyContinue |
+                   ForEach-Object { Get-ItemProperty $_.PSPath }
+
+        $allDates = $sources | Where-Object { $_.InstallDate } |
+                    ForEach-Object { [DateTime]::FromFileTime($_.InstallDate) }
+
+        if ($allDates) {
+            $NgaySuDung = ($allDates | Sort-Object | Select-Object -First 1).ToString("dd/MM/yyyy")
+        }
+    }
+    catch { }
+}
+
+# Cách 3: Registry InstallDate
 if ($NgaySuDung -eq "Không lấy được") {
     try {
         $installTime = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name InstallDate).InstallDate
         $NgaySuDung = [DateTime]::FromFileTime($installTime).ToString("dd/MM/yyyy")
     }
-    catch {
-        try {
-            $NgaySuDung = ([WMI]'').ConvertToDateTime((Get-CimInstance Win32_OperatingSystem).InstallDate).ToString("dd/MM/yyyy")
-        }
-        catch { }
+    catch { }
+}
+
+# Cách 4: WMI
+if ($NgaySuDung -eq "Không lấy được") {
+    try {
+        $NgaySuDung = ([WMI]'').ConvertToDateTime((Get-CimInstance Win32_OperatingSystem).InstallDate).ToString("dd/MM/yyyy")
     }
+    catch { }
 }
 
 # ==================== RAM (gộp 1 cột) ====================
