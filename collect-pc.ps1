@@ -20,25 +20,48 @@ $Serial         = (Get-CimInstance Win32_BIOS).SerialNumber
 $CPU            = (Get-CimInstance Win32_Processor).Name
 $RAM            = [math]::Round((Get-CimInstance Win32_PhysicalMemory | Measure-Object Capacity -Sum).Sum / 1GB, 0)
 
-# === DISK CHI TIẾT ===
+# ==================== PHẦN DISK ĐÃ SỬA ====================
 $diskList = @()
-Get-PhysicalDisk | ForEach-Object {
-    $media = $_.MediaType
-    if ($media -eq "UnSpecified") {
-        if ($_.BusType -eq "NVMe") { $media = "SSD (NVMe)" }
-        elseif ($_.BusType -eq "SATA" -and $_.FriendlyName -match "SSD") { $media = "SSD" }
-        else { $media = "Unknown" }
-    }
+
+Get-PhysicalDisk | Sort-Object DeviceId | ForEach-Object {
+    # Dung lượng thực tế (không khấu trừ) - làm tròn chuẩn
     $sizeGB = [math]::Round($_.Size / 1GB, 0)
-    $diskInfo = "Ổ $($_.DeviceID): $media $sizeGB GB"
-    if ($_.BusType -and $_.BusType -ne "SATA") { $diskInfo += " ($($_.BusType))" }
+    
+    # Xác định loại ổ (ưu tiên MediaType, fallback BusType + Model)
+    $media = $_.MediaType
+    if ($media -eq "UnSpecified" -or $media -eq $null) {
+        if ($_.BusType -eq "NVMe") { $media = "NVMe SSD" }
+        elseif ($_.BusType -eq "SATA" -and $_.FriendlyName -match "SSD") { $media = "SSD" }
+        elseif ($_.BusType -eq "USB") { $media = "USB" }
+        else { $media = "HDD" }
+    }
+
+    # Sửa lỗi hiển thị "?" → dùng DeviceId hoặc FriendlyName
+    $diskName = if ($_.FriendlyName -and $_.FriendlyName -notmatch "^PhysicalDisk") {
+                    $_.FriendlyName
+                } else {
+                    "Disk $($_.DeviceId)"
+                }
+
+    $diskInfo = "$diskName : $media $sizeGB GB"
+
+    # Thêm BusType nếu là NVMe hoặc USB để chi tiết hơn
+    if ($_.BusType -and $_.BusType -notin @("SATA","Unknown")) {
+        $diskInfo += " ($($_.BusType))"
+    }
+
     $diskList += $diskInfo
 }
+
 $Disk = $diskList -join "; "
+
+# Fallback nếu không lấy được PhysicalDisk
 if (-not $Disk) {
-    $total = 0; Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | %{ $total += $_.Size }
+    $total = 0
+    Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | ForEach-Object { $total += $_.Size }
     $Disk = [math]::Round($total / 1GB, 0) + " GB (tổng)"
 }
+# ========================================================
 
 # IP và các trường còn lại
 $IP = (Get-NetIPAddress | Where-Object {
