@@ -11,7 +11,7 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding  = [System.Text.Encoding]::UTF8
 
-$WebAppUrl = "https://script.google.com/macros/s/AKfycbxqZn42lU9XpyTDJs1VYnlt1QODqstO9t3qJqDnRt_0ELBO5aA6cgMC5cCMwVKKB-aD6g/exec"  
+$WebAppUrl = "https://script.google.com/macros/s/AKfycbzktruXAyFtyH0Jxyyh_2Fe6x2OOfsY9Yq_psM86gCwYiDS4eXSTvU34NuljbgYuI6Z5A/exec"  
 
 # Nhập tay
 if (-not $PhongBan) { $PhongBan = Read-Host "Nhập tên phòng ban" ; if (-not $PhongBan) { $PhongBan = "Chưa nhập" } }
