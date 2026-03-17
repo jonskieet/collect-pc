@@ -172,7 +172,7 @@ try {
 
     Write-Progress -Activity "ACIC - Đang thu thập dữ liệu" -Completed
 
-    Write-Host "✅ Upload thành công! Ngày sử dụng PC: $NgaySuDung" -ForegroundColor Green
+    Write-Host "✅ Upload lên server ACIC thành công!" -ForegroundColor Green
 }
 catch {
     Write-Progress -Activity "ACIC - Đang thu thập dữ liệu" -Completed
