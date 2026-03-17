@@ -26,28 +26,28 @@ function Update-Progress {
 $WebAppUrl = "https://script.google.com/macros/s/AKfycbzktruXAyFtyH0Jxyyh_2Fe6x2OOfsY9Yq_psM86gCwYiDS4eXSTvU34NuljbgYuI6Z5A/exec"  
 
 # ==================== INPUT ====================
-Update-Progress "Đang nhập thông tin người dùng***" 5
+Update-Progress "Đang nhập thông tin người dùng..." 5
 
 if (-not $PhongBan) { $PhongBan = Read-Host "Nhập tên phòng ban" ; if (-not $PhongBan) { $PhongBan = "Chưa nhập" } }
 if (-not $CanBo)    { $CanBo    = Read-Host "Nhập tên cán bộ"    ; if (-not $CanBo)    { $CanBo    = "Chưa nhập" } }
 
 # ==================== BASIC INFO ====================
-Update-Progress "Đang lấy tên máy và user***" 10
+Update-Progress "Đang lấy tên máy và user..." 10
 $TenMayTinh     = $env:COMPUTERNAME
 $TenNguoiSuDung = $env:USERNAME
 
-Update-Progress "Đang lấy Model máy***" 15
+Update-Progress "Đang lấy Model máy..." 15
 $Model          = (Get-CimInstance Win32_ComputerSystem).Model
 
-Update-Progress "Đang lấy Serial BIOS***" 20
+Update-Progress "Đang lấy Serial BIOS..." 20
 $Serial         = (Get-CimInstance Win32_BIOS).SerialNumber
 
-Update-Progress "Đang lấy thông tin CPU***" 25
+Update-Progress "Đang lấy thông tin CPU..." 25
 $CPU            = (Get-CimInstance Win32_Processor).Name
 
 
 # ==================== NGÀY SỬ DỤNG PC ====================
-Update-Progress "Đang xác định ngày bắt đầu sử dụng PC***" 30
+Update-Progress "Đang xác định ngày bắt đầu sử dụng PC..." 30
 
 $NgaySuDung = "Không lấy được"
 
@@ -72,7 +72,7 @@ if ($NgaySuDung -eq "Không lấy được") {
 }
 
 # ==================== RAM ====================
-Update-Progress "Đang phân tích RAM***" 40
+Update-Progress "Đang phân tích RAM..." 40
 
 $ramModules = Get-CimInstance Win32_PhysicalMemory
 $ramList = @()
@@ -92,7 +92,7 @@ $Ram = "$RAM_GB GB - $RAM_SoThanh thanh - $RAM_TocDo MHz - $RAM_ChiTiet"
 
 
 # ==================== DISK ====================
-Update-Progress "Đang quét ổ đĩa***" 55
+Update-Progress "Đang quét ổ đĩa..." 55
 
 $diskList = @()
 Get-PhysicalDisk | Sort-Object DeviceId | ForEach-Object {
@@ -123,7 +123,7 @@ if (-not $Disk) { $Disk = "Không lấy được" }
 
 
 # ==================== NETWORK ====================
-Update-Progress "Đang lấy IP và MAC***" 70
+Update-Progress "Đang lấy IP và MAC..." 70
 
 $IP = (Get-NetIPAddress | Where-Object {
     $_.AddressFamily -eq 'IPv4' -and
@@ -135,15 +135,15 @@ $MAC = (Get-NetAdapter | Where-Object Status -eq 'Up' | Select-Object -First 1).
 
 
 # ==================== OS + MAINBOARD ====================
-Update-Progress "Đang lấy thông tin Windows***" 80
+Update-Progress "Đang lấy thông tin Windows..." 80
 $Windows = (Get-CimInstance Win32_OperatingSystem).Caption
 
-Update-Progress "Đang lấy thông tin Mainboard***" 85
+Update-Progress "Đang lấy thông tin Mainboard..." 85
 $Mainboard = (Get-CimInstance Win32_BaseBoard).Manufacturer + " " + (Get-CimInstance Win32_BaseBoard).Product
 
 
 # ==================== SEND DATA ====================
-Update-Progress "Đang chuẩn bị dữ liệu***" 90
+Update-Progress "Đang chuẩn bị dữ liệu..." 90
 
 $data = @{
     PhongBan      = $PhongBan
@@ -165,7 +165,7 @@ $data = @{
 $json = $data | ConvertTo-Json -Compress -Depth 10
 $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($json)
 
-Update-Progress "Đang gửi dữ liệu lên server ACIC***" 95
+Update-Progress "Đang gửi dữ liệu lên server ACIC..." 95
 
 try {
     Invoke-RestMethod -Uri $WebAppUrl -Method Post -Body $bodyBytes -ContentType "application/json; charset=utf-8" | Out-Null
