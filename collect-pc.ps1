@@ -19,17 +19,29 @@ function Update-Progress {
     )
 
     Write-Progress `
-        -Activity " - Đang thu thập dữ liệu" `
+        -Activity "ACIC - Đang thu thập dữ liệu" `
         -Status "$Status ($Percent%)" `
         -PercentComplete $Percent
 }
+
 $WebAppUrl = "https://script.google.com/macros/s/AKfycbzktruXAyFtyH0Jxyyh_2Fe6x2OOfsY9Yq_psM86gCwYiDS4eXSTvU34NuljbgYuI6Z5A/exec"  
 
 # ==================== INPUT ====================
 Update-Progress "Đang nhập thông tin người dùng..." 5
 
-if (-not $PhongBan) { $PhongBan = Read-Host "Nhập tên phòng ban"-ForegroundColor Green ; if (-not $PhongBan) { $PhongBan = "Chưa nhập" } }
-if (-not $CanBo)    { $CanBo    = Read-Host "Nhập tên cán bộ"-ForegroundColor Green ; if (-not $CanBo)    { $CanBo    = "Chưa nhập" } }
+if (-not $PhongBan) {
+    Write-Host "Nhập tên phòng ban: " -NoNewline -ForegroundColor Green
+    $PhongBan = Read-Host
+    if (-not $PhongBan) { $PhongBan = "Chưa nhập" }
+}
+
+if (-not $CanBo) {
+    Write-Host "Nhập tên cán bộ: " -NoNewline -ForegroundColor Green
+    $CanBo = Read-Host
+    if (-not $CanBo) { $CanBo = "Chưa nhập" }
+}
+
+Write-Host "Đang thu thập thông tin PC..." -ForegroundColor Green
 
 # ==================== BASIC INFO ====================
 Update-Progress "Đang lấy tên máy và user..." 10
@@ -172,11 +184,12 @@ try {
 
     Write-Progress -Activity "ACIC - Đang thu thập dữ liệu" -Completed
 
-    Write-Host "✅ Upload lên server ACIC thành công!" -ForegroundColor Green
+    Write-Host "Upload lên server ACIC thành công!" -ForegroundColor Green
 }
 catch {
     Write-Progress -Activity "ACIC - Đang thu thập dữ liệu" -Completed
-    Write-Host "❌ Lỗi: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Lỗi: $($_.Exception.Message)" -ForegroundColor Green
 }
 
+Write-Host "Nhấn phím bất kỳ để thoát..." -ForegroundColor Green
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
