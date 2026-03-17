@@ -1,16 +1,34 @@
-# === THAY ĐỔI DÒNG NÀY BẰNG URL CỦA BẠN ===
-$WebAppUrl = "https://script.google.com/macros/s/AKfycbyV3JChqfiYTfROjxi_QhpALuNSnlt4TfQDmq_7WWUykI8OZFEH9bSD_DsSrcjXd3QSoQ/exec"
+# ================================================
+# COLLECT PC - Hỗ trợ đầy đủ tiếng Việt
+# ================================================
 
-# === NHẬP TAY 2 CỘT MỚI ===
-Write-Host "=== NHẬP THÔNG TIN PHÒNG BAN VÀ CÁN BỘ ===" -ForegroundColor Yellow
-$PhongBan = Read-Host "Tên phòng ban (ví dụ: Kinh doanh, IT, Kế toán)"
-if (-not $PhongBan) { $PhongBan = "Chưa nhập" }
+param (
+    [string]$PhongBan = "",
+    [string]$CanBo    = ""
+)
 
-$CanBo = Read-Host "Tên cán bộ (họ tên đầy đủ)"
-if (-not $CanBo) { $CanBo = "Chưa nhập" }
+# Buộc PowerShell hỗ trợ UTF-8 để hiển thị và gửi tiếng Việt đúng
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding  = [System.Text.Encoding]::UTF8
 
-Write-Host "Bạn đã nhập: Phòng ban = $PhongBan | Cán bộ = $CanBo" -ForegroundColor Green
-Write-Host "Bắt đầu thu thập thông tin PC..." -ForegroundColor Cyan
+# === URL Google Apps Script (giữ nguyên của bạn) ===
+$WebAppUrl = "https://script.google.com/macros/s/AKfycbx4dwSloGihlLYBExIPCK8z3R6MO1Yre1X1p_ud7aYQaGfOBQ41YPOsTrh___RRQ/exec"
+
+# === NHẬP THÔNG TIN (hỗ trợ tiếng Việt) ===
+if (-not $PhongBan) {
+    Write-Host "=== NHẬP THÔNG TIN ===" -ForegroundColor Yellow
+    $PhongBan = Read-Host "Nhập tên phòng ban"
+    if (-not $PhongBan) { $PhongBan = "Chưa nhập" }
+}
+
+if (-not $CanBo) {
+    $CanBo = Read-Host "Nhập tên cán bộ (họ và tên)"
+    if (-not $CanBo) { $CanBo = "Chưa nhập" }
+}
+
+Write-Host "Đã nhận: Phòng ban = $PhongBan | Cán bộ = $CanBo" -ForegroundColor Green
+Write-Host "Đang thu thập thông tin máy..." -ForegroundColor Cyan
 
 # === THÔNG TIN PC ===
 $TenMayTinh     = $env:COMPUTERNAME
@@ -20,58 +38,45 @@ $Serial         = (Get-CimInstance Win32_BIOS).SerialNumber
 $CPU            = (Get-CimInstance Win32_Processor).Name
 $RAM            = [math]::Round((Get-CimInstance Win32_PhysicalMemory | Measure-Object Capacity -Sum).Sum / 1GB, 0)
 
-# ==================== PHẦN DISK ĐÃ SỬA ====================
+# === DISK (đã fix dung lượng thực + tên rõ ràng) ===
 $diskList = @()
-
 Get-PhysicalDisk | Sort-Object DeviceId | ForEach-Object {
-    # Dung lượng thực tế (không khấu trừ) - làm tròn chuẩn
     $sizeGB = [math]::Round($_.Size / 1GB, 0)
     
-    # Xác định loại ổ (ưu tiên MediaType, fallback BusType + Model)
     $media = $_.MediaType
     if ($media -eq "UnSpecified" -or $media -eq $null) {
         if ($_.BusType -eq "NVMe") { $media = "NVMe SSD" }
-        elseif ($_.BusType -eq "SATA" -and $_.FriendlyName -match "SSD") { $media = "SSD" }
-        elseif ($_.BusType -eq "USB") { $media = "USB" }
+        elseif ($_.FriendlyName -match "SSD") { $media = "SSD" }
         else { $media = "HDD" }
     }
 
-    # Sửa lỗi hiển thị "?" → dùng DeviceId hoặc FriendlyName
-    $diskName = if ($_.FriendlyName -and $_.FriendlyName -notmatch "^PhysicalDisk") {
-                    $_.FriendlyName
+    $diskName = if ($_.FriendlyName -and $_.FriendlyName -notmatch "^Physical") {
+                    $_.FriendlyName.Trim()
                 } else {
                     "Disk $($_.DeviceId)"
                 }
 
     $diskInfo = "$diskName : $media $sizeGB GB"
-
-    # Thêm BusType nếu là NVMe hoặc USB để chi tiết hơn
     if ($_.BusType -and $_.BusType -notin @("SATA","Unknown")) {
         $diskInfo += " ($($_.BusType))"
     }
-
     $diskList += $diskInfo
 }
-
 $Disk = $diskList -join "; "
 
-# Fallback nếu không lấy được PhysicalDisk
-if (-not $Disk) {
-    $total = 0
-    Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | ForEach-Object { $total += $_.Size }
-    $Disk = [math]::Round($total / 1GB, 0) + " GB (tổng)"
-}
-# ========================================================
+if (-not $Disk) { $Disk = "Không lấy được thông tin disk" }
 
-# IP và các trường còn lại
+# === IP, MAC, Windows ===
 $IP = (Get-NetIPAddress | Where-Object {
-    $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.*'
+    $_.AddressFamily -eq 'IPv4' -and 
+    $_.IPAddress -notlike '127.*' -and 
+    $_.IPAddress -notlike '169.*'
 } | Select-Object -First 1).IPAddress
 
 $MAC = (Get-NetAdapter | Where-Object Status -eq 'Up' | Select-Object -First 1).MacAddress
 $Windows = (Get-CimInstance Win32_OperatingSystem).Caption
 
-# === GỬI DỮ LIỆU ===
+# === GỬI DỮ LIỆU (UTF-8) ===
 $data = @{
     TenMayTinh      = $TenMayTinh
     TenNguoiSuDung  = $TenNguoiSuDung
@@ -90,9 +95,13 @@ $data = @{
 $json = $data | ConvertTo-Json -Compress
 
 try {
-    $response = Invoke-RestMethod -Uri $WebAppUrl -Method Post -Body $json -ContentType "application/json"
-    Write-Host "✅ Upload thành công! Đã thêm dòng mới vào Google Sheets." -ForegroundColor Green
-    Write-Host "Thông tin: $CanBo - $PhongBan - Máy: $TenMayTinh" -ForegroundColor Cyan
-} catch {
+    Invoke-RestMethod -Uri $WebAppUrl -Method Post -Body $json -ContentType "application/json" | Out-Null
+    Write-Host "✅ Upload thành công!" -ForegroundColor Green
+    Write-Host "Phòng ban: $PhongBan | Cán bộ: $CanBo | Máy: $TenMayTinh" -ForegroundColor Cyan
+} 
+catch {
     Write-Host "❌ Lỗi upload: $($_.Exception.Message)" -ForegroundColor Red
 }
+
+Write-Host "Nhấn phím bất kỳ để thoát..." -ForegroundColor Gray
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
