@@ -13,7 +13,7 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding  = [System.Text.Encoding]::UTF8
 
 # === URL Google Apps Script (giữ nguyên của bạn) ===
-$WebAppUrl = "https://script.google.com/macros/s/AKfycbx4dwSloGihlLYBExIPCK8z3R6MO1Yre1X1p_ud7aYQaGfOBQ41YPOsTrh___RRQ/exec"
+$WebAppUrl = "https://script.google.com/macros/s/AKfycbyzJcitb9iBpamPIj_cRb5ItN-qK32VHpT4cjNtZ-dgZYFI9EUsRO7UHEMAMU5KyabFIQ/exec"
 
 # === NHẬP THÔNG TIN (hỗ trợ tiếng Việt) ===
 if (-not $PhongBan) {
